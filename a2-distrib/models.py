@@ -84,9 +84,8 @@ class DAN(nn.Module):
 
 
 def form_input(x) -> torch.Tensor:
-    """ TODO: fix
-    Form the input to the neural network. In general this may be a complex function that synthesizes multiple pieces
-    of data, does some computation, handles batching, etc.
+    """
+    Form the input to the neural network. 
 
     :param x: a [num_samples x inp] numpy array containing input data.
     :return: a [num_samples x inp] Tensor.
@@ -148,7 +147,7 @@ def train_deep_averaging_network(args, train_exs: List[SentimentExample], dev_ex
 
     # Train and test DAN.
     num_epochs = 10
-    batch_size = 1
+    batch_size = 8
     dan = DAN(word_embeddings, feat_vec_size, hidden_1, hidden_2, num_classes)
     initial_learning_rate = 0.01
     optimizer = optim.Adam(dan.parameters(), lr=initial_learning_rate)
@@ -224,16 +223,22 @@ def train_deep_averaging_network(args, train_exs: List[SentimentExample], dev_ex
 
     return NeuralSentimentClassifier(dan, word_embeddings)
 
-def process_x(sentences, word_embeddings: WordEmbeddings, max_len_sentence: int) -> list():
+def process_x(sentences: list(), word_embeddings: WordEmbeddings, max_len_sentence: int) -> list():
     """
-    Gets index for each word in sentence.
+    Gets index for each word in sentence. Detects unknown words and pads sentences so 
+    tensor has same number of columns per training example.
     """
     batch_x = list()
     for sen in sentences:
+        # Get index for each word in current sentence.
         embed = [word_embeddings.word_indexer.index_of(sen[i]) for i in range(len(sen))]
+
+        # Indicate unseen words as unknown.
         for i in range(len(embed)):
             if embed[i] == -1:
                 embed[i] = word_embeddings.word_indexer.index_of("UNK")
+
+        # Pad sentence.
         while len(embed) < max_len_sentence:
             embed.append(word_embeddings.word_indexer.index_of("PAD"))
 
